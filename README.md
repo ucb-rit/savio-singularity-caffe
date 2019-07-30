@@ -1,2 +1,58 @@
 # savio-singularity-caffe
-Materials for creating Singularity container for running Caffe on Savio.
+Materials for creating Singularity container for running Caffe in the Python interpreter or in a Jupyter notebook on Savio.
+
+## To use the container on Savio
+
+You first need access to the container image file. If the image file has not been provided to you, you'll need to create it via the instructions below on building the container. You'll need root access to a Linux machine (one option here is an Amazon EC2 or Google Cloud Platform virtual machine instance; another option is running within a Docker container) in which you've installed Singularity in order to build the container.
+
+### Using the container via command-line Python
+
+To start an interactive Python session with access to Caffe, start an srun session and invoke the following in the shell on the compute node:
+
+```
+singularity run --nv -B /usr/lib64 -B /var/lib/dcv-gl caffe-gpu.simg 
+```
+
+To execute the code in a Python script (here `check-caffe.py`), either in an srun session or via sbatch, invoke:
+
+```
+singularity run --nv -B /usr/lib64 -B /var/lib/dcv-gl caffe-gpu.simg check-caffe.py
+```
+
+### Using the container via a Jupyter notebook
+
+Start an srun session and invoke the following in the shell (or include the following in your sbatch job script):
+
+```
+singularity exec --nv -B /usr/lib64 -B /var/lib/dcv-gl caffe-gpu.simg jupyter notebook --no-browser --ip=${SLURMD_NODENAME}
+```
+
+Either in the interactive session terminal output or in the SLURM .out file for the running sbatch job, you should see a note about the URL that will allow you to connect to the Jupyter session:
+
+```
+    Copy/paste this URL into your browser when you connect for the first time,
+    to login with a token:
+        http://n0223.savio2:8888/?token=b886deabc6b2fdaba36ccd55d9ac8db425e798a4494e7e12
+```
+
+Note that URL, in this case `http://n0223.savio2:8888/?token=b886deabc6b2fdaba36ccd55d9ac8db425e798a4494e7e12`.
+
+Now follow [these instructions](https://research-it.berkeley.edu/services/high-performance-computing/using-brc-visualization-node-realvnc) to start a browser session on the Savio visualization node.
+
+Paste the URL you obtained earlier into the browser and you're ready to compute after you start a Python 3 notebook.
+
+ When you are done with your Jupyter notebook, make sure to kill your `srun` or `sbatch` session so you are not charged for time you don't need. 
+
+## To build the container
+
+```
+sudo singularity build caffe-gpu-0.3.simg caffe-gpu-0.3.def
+```
+
+Notes:
+
+These instructions should work for both savio2_gpu and savio2_1080ti nodes. Note that building the container off of *nvcr.io/nvidia/tensorflow:18.02-py3* as done in [https://github.comb/ucberkeley/brc-cyberinfrastructure] in the *deep-learning-singularity* directory will only work on savio2_1080ti.
+
+Also, I tried to get the container to start Jupyterhub via instance.start but couldn't figure out how to write out the Jupyter URL to a file accessible to the user, nor to print to the screen.
+
+These materials inherit from work by Nicolas Chan and Oliver Muellerklein.

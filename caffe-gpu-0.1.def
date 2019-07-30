@@ -1,0 +1,15 @@
+Bootstrap: docker 
+From: bvlc/caffe:gpu
+
+%post
+    mkdir -p /global/home/users
+    mkdir -p /global/scratch
+    # /bin/nvidia-smi is a binary on the GPU nodes. Singularity with --nv seems to mount /bin/nvidia-smi and fails unless the file already exists in the container. 
+    touch /bin/nvidia-smi
+
+%runscript
+    python "$@"
+
+%startscript
+    # Not working because can't figure out how to write to a directory accessible to user and instance.start seems to execute without reference to the user
+    # if [ "${SLURM_JOB_ID}" != "" ]; then jupyter notebook --no-browser --ip=${SLURMD_NODENAME} 2>> slurm-${SLURM_JOB_ID}.out; else env && jupyter notebook --no-browser --ip="localhost" 2> jupyter-tf-gpu.out; fi
